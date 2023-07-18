@@ -17,12 +17,12 @@ jobs:
           node-version: '16'
 
       - name: SonarQube Scan
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=Code \
-            -Dsonar.projectName=Code \
-            -Dsonar.host.url=http://35.154.176.88:9000/ \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        uses: sonarsource/sonar-scanner-cli-action@master
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          sonar-project-key: 'Code'
+          sonar-project-name: 'Code'
+          sonar-host-url: 'http://35.154.176.88:9000/'
 
   build-and-push:
     name: Build and push image to AWS ECR
