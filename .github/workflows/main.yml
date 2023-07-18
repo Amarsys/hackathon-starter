@@ -1,4 +1,4 @@
-name: be-harvester CI
+name: nodejsproj
 on:
   push:
     branches:         
@@ -11,14 +11,13 @@ jobs:
     - name: Check out the repo
       uses: actions/checkout@v3
 
-    # see: https://github.com/aws-actions/configure-aws-credentials
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: AKIATNSKHSOOBQWZ45HX
         aws-secret-access-key: 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
         aws-region: ap-south-1
-    # see: https://github.com/aws-actions/amazon-ecr-login
+
     - name: Log in to Amazon ECR
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
