@@ -23,7 +23,6 @@ jobs:
           distribution: 'adopt'
 
       - name: SonarQube Scan
-        run: |
-          /opt/sonar-scanner \
+        run: /opt/sonar-scanner \
             -Dsonar.projectKey=squ_75fc1b22be66e108266ace8132e90d56e3d576b5 \
             -Dsonar.sources=.
