@@ -24,7 +24,6 @@ jobs:
 
       - name: SonarQube Scan
         run: |
-          # Run the SonarQube scanner command
-          sonar-scanner \
+          /opt/sonar-scanner \
             -Dsonar.projectKey=squ_75fc1b22be66e108266ace8132e90d56e3d576b5 \
             -Dsonar.sources=.
