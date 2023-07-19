@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SONAR_HOST_URL: 'http://35.154.176.88:9000'
-      SONAR_LOGIN: 'squ_75fc1b22be66e108266ace8132e90d56e3d576b5'
+      SONAR_LOGIN: ${{ secrets.SONAR_LOGIN }}
 
     steps:
       - name: Check out the repo
