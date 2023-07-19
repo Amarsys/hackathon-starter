@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SONAR_HOST_URL: 'http://35.154.176.88:9000'
-      SONAR_LOGIN: ${{ secrets.SONARQUBE_TOKEN }}
 
     steps:
       - name: Check out the repo
@@ -26,7 +25,7 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@master
         with:
           projectBaseDir: .
-          loginToken: ${{ secrets.SONARQUBE_TOKEN }}
+          loginToken: 'squ_75fc1b22be66e108266ace8132e90d56e3d576b5'
 
   build-and-push:
     name: Build and push image to AWS ECR
