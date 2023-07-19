@@ -1,14 +1,18 @@
 name: nodejsproj
+
 on:
   push:
     branches:
       - master
+
 jobs:
   code-scanning:
     name: SonarQube Code Scanning
     runs-on: ubuntu-latest
     env:
-      SHELL: /bin/bash
+      SONAR_HOST_URL: 'http://35.154.176.88:9000'
+      SONAR_LOGIN: ${{ secrets.SONAR_TOKEN }}
+
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -20,13 +24,12 @@ jobs:
 
       - name: SonarQube Scan
         uses: SonarSource/sonarcloud-github-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   build-and-push:
     name: Build and push image to AWS ECR
     needs: code-scanning
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
