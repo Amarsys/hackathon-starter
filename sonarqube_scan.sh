@@ -17,7 +17,7 @@ export SONAR_SCANNER_OPTS="-Dsonar.config.file=$SONAR_SCANNER_PROPERTIES_FILE"
 
 # Run SonarQube Scanner
 "${SONAR_SCANNER_HOME}/bin/sonar-scanner" \
-  -Dsonar.projectKey=nodejs \
+  -Dsonar.projectKey="nodejs" \
   -Dsonar.projectName="nodejs" \
   -Dsonar.projectVersion="1.0" \
   -Dsonar.sources="${GIT_REPO_DIR}" \
