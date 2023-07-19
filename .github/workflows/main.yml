@@ -26,7 +26,7 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@master
         with:
           projectBaseDir: .
-
+          loginToken: ${{ secrets.SONARQUBE_TOKEN }}
 
   build-and-push:
     name: Build and push image to AWS ECR
