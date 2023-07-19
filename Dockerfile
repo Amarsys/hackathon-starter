@@ -21,3 +21,5 @@ COPY . .
 
 # Start your application using pm2
 CMD ["pm2-runtime", "app.js"]
+
+EXPOSE 8080
