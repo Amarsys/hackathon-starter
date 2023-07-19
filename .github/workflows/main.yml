@@ -1,37 +1,29 @@
-name: nodjs
+name: SonarQube Scan
+
 on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
+
 jobs:
-  build-and-push:
-    name: Build and push image to AWS ECR
+  sonarqube:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-      
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v2
         with:
-          aws-access-key-id: AKIASDMZEJMPSHZZHANB
-          aws-secret-access-key: 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
-          aws-region: ap-south-1
-   
-      - name: Log in to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-      
-      - name: SonarQube Scanner
+          java-version: '11'
+
+      - name: SonarQube Scan
         run: |
-          chmod +x sonarqube_scan.sh
-          ./sonarqube_scan.sh
-      
-      - name: Build, tag, and push image to Amazon ECR
-        env:
-          ECR_REGISTRY: 144739420959.dkr.ecr.ap-south-1.amazonaws.com
-          ECR_REPOSITORY: nodejs
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          # Run the SonarQube scanner command
+          sonar-scanner \
+            -Dsonar.projectKey=squ_75fc1b22be66e108266ace8132e90d56e3d576b5 \
+            -Dsonar.sources=.
