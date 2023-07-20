@@ -60,9 +60,8 @@ jobs:
         run: |
           sudo curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/install.sh | sudo sh -
 
-      - name: Log in to Amazon ECR for Docker
-        run: |
-          aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+      - name: Log in to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Pull image from ECR
         run: |
