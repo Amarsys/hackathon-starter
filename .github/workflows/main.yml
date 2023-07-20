@@ -61,9 +61,11 @@ jobs:
 
       - name: Pull image from ECR
         env:
-          ECR_REGISTRY: 186453136742.dkr.ecr.ap-south-1.amazonaws.com
-          ECR_REPOSITORY: nodejs
-          IMAGE_TAG: ${{ github.sha }}
+          TRIVY_NEW_VERSION: "true"
+          AWS_DEFAULT_REGION: ap-south-1
+          AWS_REGION: ap-south-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
