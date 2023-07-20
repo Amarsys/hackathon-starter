@@ -1,4 +1,4 @@
-name: Trivy Image Scan
+name: nodejs
 
 on:
   push:
@@ -35,16 +35,18 @@ jobs:
           aws-region: ap-south-1
 
       - name: Log in to Amazon ECR
-        with:
-          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build and Push image to Amazon ECR
-        if: [[ -n "${github.sha}" ]]; then
-          run: |
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        fi
+        if: ${{ github.sha != '' }}
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
 
   trivy-scan:
     needs: build-and-scan
@@ -64,8 +66,8 @@ jobs:
 
       - name: Pull image from ECR
         run: |
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          docker pull ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       - name: Scan image
         run: |
-          trivy image $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.sha }}
+          trivy image ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
