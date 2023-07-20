@@ -60,6 +60,10 @@ jobs:
           sudo curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/install.sh | sudo sh -
 
       - name: Pull image from ECR
+        env:
+          ECR_REGISTRY: 186453136742.dkr.ecr.ap-south-1.amazonaws.com
+          ECR_REPOSITORY: nodejs
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
