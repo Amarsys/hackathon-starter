@@ -37,6 +37,10 @@ jobs:
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry: ${{ secrets.ECR_REGISTRY }}
+        env:
+          AWS_REGION: ap-south-1
 
       - name: Build and Push image to Amazon ECR
         if: ${{ github.sha != '' }}
@@ -62,6 +66,10 @@ jobs:
 
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry: ${{ secrets.ECR_REGISTRY }}
+        env:
+          AWS_REGION: ap-south-1
 
       - name: Pull image from ECR
         run: |
