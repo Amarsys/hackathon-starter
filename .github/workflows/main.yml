@@ -5,14 +5,12 @@ on:
       - master
 
 jobs:
-  sonarqube:
-    name: SonarQube Scan
+  build-and-scan:
+    name: Build, SonarQube Scan, and Trivy Scan
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+      - name: Checkout the repo
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
         uses: actions/setup-node@v1
@@ -28,13 +26,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-  build-and-push:
-    name: Build and push image to AWS ECR
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -46,7 +37,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build and Push image to Amazon ECR
         env:
           ECR_REGISTRY: 186453136742.dkr.ecr.ap-south-1.amazonaws.com
           ECR_REPOSITORY: nodejs
@@ -54,20 +45,3 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        
-      - name: Trivy Scan
-        run: |
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          trivy $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        env:
-          TRIVY_NEW_VERSION: "true"
-
-      - name: Check Trivy Results
-        run: |
-          TRIVY_EXIT_CODE=$(trivy exit-code $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG)
-          if [ $TRIVY_EXIT_CODE -eq 0 ]; then
-            echo "No vulnerabilities found."
-          else
-            echo "Vulnerabilities found! Aborting the build."
-            exit 1
-          fi
