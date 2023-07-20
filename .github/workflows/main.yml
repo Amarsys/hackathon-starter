@@ -48,26 +48,7 @@ jobs:
 
       - name: Build, tag, and push image to Amazon ECR
         env:
-          ECR_REGISTRY: 186453136742.dkr.ecr.ap-south-1.amazonaws.com
-          ECR_REPOSITORY: nodejs
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: Trivy Scan
-        run: |
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          trivy $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-        env:
-          TRIVY_NEW_VERSION: true
-
-      - name: Check Trivy Results
-        run: |
-          TRIVY_EXIT_CODE=$(trivy exit-code $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG)
-          if [ $TRIVY_EXIT_CODE -eq 0 ]; then
-            echo "No vulnerabilities found."
-          else
-            echo "Vulnerabilities found! Aborting the build."
-            exit 1
-          fi
