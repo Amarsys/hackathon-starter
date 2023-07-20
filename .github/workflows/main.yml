@@ -1,4 +1,5 @@
 name: nodejs
+
 on:
   push:
     branches:
@@ -45,3 +46,23 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  trivy-scan:
+    needs: build-and-scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install Trivy
+        run: |
+          sudo curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/install.sh | sudo sh -
+
+      - name: Pull image from ECR
+        run: |
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      - name: Scan image
+        run: |
+          trivy image --repository $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
