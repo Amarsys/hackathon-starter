@@ -9,7 +9,24 @@ jobs:
     name: SonarQube Scan
     runs-on: ubuntu-latest
     steps:
-      # ... Your existing SonarQube scan steps here ...
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   build-and-push:
     name: Build and push image to AWS ECR
@@ -37,3 +54,20 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        
+      - name: Trivy Scan
+        run: |
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          trivy $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        env:
+          TRIVY_NEW_VERSION: "true"
+
+      - name: Check Trivy Results
+        run: |
+          TRIVY_EXIT_CODE=$(trivy exit-code $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG)
+          if [ $TRIVY_EXIT_CODE -eq 0 ]; then
+            echo "No vulnerabilities found."
+          else
+            echo "Vulnerabilities found! Aborting the build."
+            exit 1
+          fi
