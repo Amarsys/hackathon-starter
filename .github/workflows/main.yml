@@ -1,4 +1,4 @@
-name: nodejs
+name: Trivy Image Scan
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     name: Build, SonarQube Scan, and Trivy Scan
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Node.js
@@ -61,8 +61,8 @@ jobs:
 
       - name: Pull image from ECR
         run: |
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Scan image
         run: |
-          trivy image --repository $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          trivy image --repository $ECR_REGISTRY/$ECR_REPOSITORY:latest
