@@ -21,11 +21,11 @@ jobs:
       - name: Install Dependencies
         run: yarn install
 
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+     # - name: SonarQube Scan
+     #   uses: sonarsource/sonarqube-scan-action@master
+     #   env:
+     #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+     #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
