@@ -1,4 +1,4 @@
-name: Trivy Image Scan
+name: Nodejs
 
 on:
   push:
