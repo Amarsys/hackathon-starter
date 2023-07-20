@@ -32,7 +32,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
-          registry: my-ecr-registry
+          registry: nodejs
           skip-logout: false
           registry-type: private
   env:
@@ -63,7 +63,7 @@ jobs:
       - name: Log in to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
         with:
-          registry: my-ecr-registry
+          registry: nodejs
           skip-logout: false
           registry-type: private
 
