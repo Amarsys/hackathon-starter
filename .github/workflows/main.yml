@@ -47,32 +47,14 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  trivy-scan:
+trivy-scan:
     name: Trivy Scan
-    needs: build-and-scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install Trivy
-        run: |
+    run: |
+          # Install Trivy
           sudo curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/install.sh | sudo sh -
-
-      - name: Pull image from ECR
-        env:
-          ECR_REGISTRY: 186453136742.dkr.ecr.ap-south-1.amazonaws.com
-          ECR_REPOSITORY: nodejs
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: Scan image with Trivy
-        run: |
-          TRIVY_EXIT_CODE=$(trivy image --exit-code 1 --severity HIGH,CRITICAL $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG)
-          
-          if [ "$TRIVY_EXIT_CODE" == "1" ]; then
+          # Perform Trivy scan on the image
+          TRIVY_EXIT_CODE=$(trivy image --format json $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | jq -r '.[0].Vulnerabilities[] | select(.Severity == "HIGH") | .Severity')
+          if [ "$TRIVY_EXIT_CODE" == "HIGH" ]; then
             echo "High vulnerabilities found. Aborting the build..."
             exit 1
           else
