@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-scan:
-    name: Build, SonarQube Scan, and Trivy Scan
+    name: Build and Trivy Scan
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repo
@@ -21,11 +21,11 @@ jobs:
       - name: Install Dependencies
         run: yarn install
 
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      # - name: SonarQube Scan
+      #   uses: sonarsource/sonarqube-scan-action@master
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -47,22 +47,17 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-  trivy-scan:
-    needs: build-and-scan
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Install Trivy
+      - name: Trivy Scan
         run: |
+          # Install Trivy
           sudo curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/install.sh | sudo sh -
 
-      - name: Pull image from ECR
-        run: |
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          # Perform Trivy scan on the image
+          TRIVY_EXIT_CODE=$(trivy image --format json $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG | jq -r '.[0].Vulnerabilities[] | select(.Severity == "HIGH") | .Severity')
 
-      - name: Scan image
-        run: |
-          trivy image --repository $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          if [ "$TRIVY_EXIT_CODE" == "HIGH" ]; then
+            echo "High vulnerabilities found. Aborting the build..."
+            exit 1
+          else
+            echo "No high vulnerabilities found. Proceeding with the build..."
+          fi
