@@ -1,30 +1,68 @@
-name: Trivy Scan
+name: CI-CD Pipeline
 
 on:
   push:
     branches:
-      - main  # Change this to the branch you want to trigger the workflow on
+      - master
 
 jobs:
-  trivy_scan:
+  build-and-scan:
+    name: Build, SonarQube Scan, and Trivy Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push image to Amazon ECR
+        env:
+          ECR_REGISTRY: 186453136742.dkr.ecr.ap-south-1.amazonaws.com
+          ECR_REPOSITORY: nodejs
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+  trivy-scan:
+    needs: build-and-scan
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-south-1  # Replace this with the appropriate AWS region
+      - name: Install Trivy
+        run: |
+          sudo curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/install.sh | sudo sh -
 
-    - name: Install Trivy
-      run: |
-        AWS_ACCOUNT_ID=186453136742
-        AWS_REGION=ap-south-1
-        ECR_REPOSITORY=nodejs
-        IMAGE_TAG="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:latest"
+      - name: Pull image from ECR
+        run: |
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-        trivy image --exit-code 1 --severity HIGH,CRITICAL "$IMAGE_TAG"
+      - name: Scan image
+        run: |
+          trivy image --repository $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
